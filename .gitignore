@@ -127,3 +127,9 @@ dmypy.json
 
 # Spotipy
 .cache-*
+
+flask_session/*
+!flask_session/.keep
+
+musical_compass/generated_compasses/*
+!musical_compass/generated_compasses/.keep

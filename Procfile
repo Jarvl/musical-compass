@@ -1,0 +1,1 @@
+web: gunicorn musical_compass:app

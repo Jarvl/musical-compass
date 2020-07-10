@@ -6,8 +6,12 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-spotipy = "*"
 matplotlib = "*"
+flask = "*"
+gunicorn = "*"
+flask-session = "*"
+python-dotenv = "*"
+py-oauth2 = "*"
 
 [requires]
 python_version = "3.7.6"
