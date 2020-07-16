@@ -13,6 +13,9 @@ flask-session = "*"
 python-dotenv = "*"
 py-oauth2 = "*"
 flask-talisman = "*"
+flask-sqlalchemy = "*"
+flask-migrate = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.8.1"

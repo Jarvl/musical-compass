@@ -15,29 +15,27 @@ def get_weight(track_number):
     weight /= 2.0
   return weight
 
-def get_top_tracks():
+def get_top_track_ids():
   params = { 'limit': 50, 'offset': 0, 'time_range': 'medium_term' } # Last 6 months
-  return session['authorized_client'].get('me/top/tracks', **params).parsed['items']
+  top_tracks = session['authorized_client'].get('me/top/tracks', **params).parsed['items']
+  top_track_ids = [ x['id'] for x in top_tracks ]
+  if not top_track_ids:
+    raise NoListeningDataException
+  return top_track_ids
 
 def get_audio_features(track_ids):
   params = { 'ids': ','.join(track_ids) }
   return session['authorized_client'].get('audio-features', **params).parsed['audio_features']
 
-def get_compass_values(x_axis, y_axis):
-  top_track_ids = [ x['id'] for x in get_top_tracks() ]
-  if not top_track_ids:
-    raise NoListeningDataException
-
-  top_track_audio_features = get_audio_features(top_track_ids)
-
+def get_compass_values(track_audio_features, x_axis_key, y_axis_key):
   total_x_axis = 0
   total_y_axis = 0
   weight_sum = 0
 
-  for track_num, track_features in enumerate(top_track_audio_features):
+  for track_num, track_features in enumerate(track_audio_features):
     weight = get_weight(track_num)
-    total_x_axis += (track_features[x_axis] * weight)
-    total_y_axis += (track_features[y_axis] * weight)
+    total_x_axis += (track_features[x_axis_key] * weight)
+    total_y_axis += (track_features[y_axis_key] * weight)
     weight_sum += weight
 
   # Weighted average (divide by the sum of all weights)

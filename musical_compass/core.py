@@ -1,17 +1,21 @@
 import os
+import json
 import matplotlib.pyplot as plt
 from flask import Flask, session, request, redirect, send_file
+from flask_migrate import Migrate
 from flask_session import Session
 from flask_talisman import Talisman
+import sqlalchemy
+from sqlalchemy.dialects import postgresql
 import pyoauth2
-from . import helpers
+
+from . import helpers, models
 
 app = Flask(__name__)
 app.config.from_object("musical_compass.config")
-
 Session(app)
-
-# Talisman will only be enabled when flask is in debug mode
+migrate = Migrate(app, models.db)
+models.db.init_app(app)
 Talisman(
   app,
   force_https=True,
@@ -64,12 +68,20 @@ def results():
   if not session.get('authorized_client'):
     return redirect('/')
   else:
-    x_axis_key = 'acousticness'
-    y_axis_key = 'valence'
     try:
-      (x_axis_value, y_axis_value) = helpers.get_compass_values(x_axis_key, y_axis_key)
+      top_track_ids = helpers.get_top_track_ids()
     except helpers.NoListeningDataException as e:
       return str(e)
+
+    top_track_audio_features = helpers.get_audio_features(top_track_ids)
+
+    x_axis_key = 'acousticness'
+    y_axis_key = 'valence'
+    (x_axis_value, y_axis_value) = helpers.get_compass_values(
+      top_track_audio_features,
+      x_axis_key,
+      y_axis_key
+    )
 
     # Plot it
     fig, ax = plt.subplots(figsize=(15, 12))
@@ -105,6 +117,58 @@ def results():
     # plt.show()
 
     profile = session['authorized_client'].get('me/').parsed
+
+    # Upsert user account record
+    user_account = models.UserAccount.query.filter_by(id=profile['id']).first()
+    if not user_account:
+      user_account = models.UserAccount(id=profile['id'])
+      models.db.session.add(user_account)
+      models.db.session.commit()
+      models.db.session.refresh(user_account)
+
+    # Create result record
+    result = models.Result(user_account_id=user_account.id)
+    models.db.session.add(result)
+    models.db.session.commit()
+    models.db.session.refresh(result)
+
+    # Create track records
+    analytics_data_keys = [
+      'danceability',
+      'energy',
+      'key',
+      'loudness',
+      'mode',
+      'speechiness',
+      'acousticness',
+      'instrumentalness',
+      'liveness',
+      'valence',
+      'tempo',
+      'duration_ms',
+      'time_signature',
+    ]
+    track_upsert_statement = (
+      postgresql.insert(models.Track)
+      .values([
+        {
+          "id": x['id'],
+          "analytics_data": json.dumps({ k: v for (k, v) in x.items() if k in analytics_data_keys })
+        }
+        for x in top_track_audio_features
+      ])
+      .on_conflict_do_nothing()
+    )
+    track_upsert_result = models.db.engine.execute(track_upsert_statement)
+    models.db.session.commit()
+
+    # Create result_track join table records
+    result_track_records = [
+      models.Result_Track(result_id=result.id, track_id=x['id'])
+      for x in top_track_audio_features
+    ]
+    models.db.session.bulk_save_objects(result_track_records)
+    models.db.session.commit()
 
     filename = 'generated_compasses/musical_compass-{}.png'.format(profile['id'])
     plt.savefig('musical_compass/{}'.format(filename))
