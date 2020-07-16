@@ -12,6 +12,7 @@ gunicorn = "*"
 flask-session = "*"
 python-dotenv = "*"
 py-oauth2 = "*"
+flask-talisman = "*"
 
 [requires]
-python_version = "3.7.6"
+python_version = "3.8.1"
