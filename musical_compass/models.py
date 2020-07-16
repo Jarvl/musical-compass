@@ -20,7 +20,7 @@ class UserAccount(BaseMixin, db.Model):
 class Result(BaseMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
   user_account_id = db.Column(db.String, db.ForeignKey("user_account.id"), nullable=False)
-  tracks = db.relationship("Track", secondary="result__track", backref="results")
+  tracks = db.relationship("Track", secondary="result__track", backref="results", lazy="joined")
 
 class Track(BaseMixin, db.Model):
   id = db.Column(db.String, primary_key=True) # Spotify track ID

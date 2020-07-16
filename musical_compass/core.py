@@ -74,6 +74,7 @@ def results():
       return str(e)
 
     top_track_audio_features = helpers.get_audio_features(top_track_ids)
+    top_track_ids_with_analytics = [x['id'] for x in top_track_audio_features]
 
     x_axis_key = 'acousticness'
     y_axis_key = 'valence'
@@ -93,7 +94,6 @@ def results():
 
     x_axis_title = x_axis_key.title()
     y_axis_title = 'Happiness'
-
 
     plot_title = 'Musical Compass\n{}: {}, {}: {}'.format(
       x_axis_title,
@@ -125,6 +125,8 @@ def results():
       models.db.session.add(user_account)
       models.db.session.commit()
       models.db.session.refresh(user_account)
+
+    # TODO: only save new result in db if the result data were changed from the last time
 
     # Create result record
     result = models.Result(user_account_id=user_account.id)
@@ -164,8 +166,8 @@ def results():
 
     # Create result_track join table records
     result_track_records = [
-      models.Result_Track(result_id=result.id, track_id=x['id'])
-      for x in top_track_audio_features
+      models.Result_Track(result_id=result.id, track_id=x)
+      for x in top_track_ids_with_analytics
     ]
     models.db.session.bulk_save_objects(result_track_records)
     models.db.session.commit()
