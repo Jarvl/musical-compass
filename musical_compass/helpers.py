@@ -10,10 +10,10 @@ def convert_to_plot_range(value):
   return (((value - 0) * (1 - -1)) / (1 - 0)) + -1
 
 def get_weight(track_number):
-  # First track will start at 0
-  x = (track_number - 1) / 10
-  y = 1 / 2 ** (x / 0.75)
-  return y
+  weight = 1.0
+  for _ in range(track_number):
+    weight /= 2.0
+  return weight
 
 def get_top_tracks():
   params = { 'limit': 50, 'offset': 0, 'time_range': 'medium_term' } # Last 6 months

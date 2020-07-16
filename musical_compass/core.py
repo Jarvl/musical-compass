@@ -12,7 +12,6 @@ app.config.from_object("musical_compass.config")
 Session(app)
 
 # Talisman will only be enabled when flask is in debug mode
-# Need to only enable when debug to prevent weird ssl errors
 Talisman(
   app,
   force_https=True,
@@ -49,9 +48,9 @@ def index():
     '<div><a href="/results">Get Musical Compass Results</a></div>'.format(profile['display_name'])
 
 
-@app.route('/.well-known/acme-challenge/XcWXsey6xxWjYLiz7qfLh7CGmGhUGgvuGEcAbQF5LU4')
+@app.route('/.well-known/acme-challenge/kuGl8u6dAhjmmsY8ltItD4w1LsFtBPlIyQB-K5fb7XA')
 def well_known():
-  return 'XcWXsey6xxWjYLiz7qfLh7CGmGhUGgvuGEcAbQF5LU4.chY9M7gBNKq7G06W1sGE2RB7XK_reLfEs2vpTdYktQU'
+  return 'kuGl8u6dAhjmmsY8ltItD4w1LsFtBPlIyQB-K5fb7XA.chY9M7gBNKq7G06W1sGE2RB7XK_reLfEs2vpTdYktQU'
 
 
 @app.route('/sign_out')
