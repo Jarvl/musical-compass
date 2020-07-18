@@ -126,51 +126,66 @@ def results():
       models.db.session.commit()
       models.db.session.refresh(user_account)
 
-    # TODO: only save new result in db if the result data were changed from the last time
+    # Only save current result in db if the current result tracks (in order)
+    # are different from the last time the user got a result
 
-    # Create result record
-    result = models.Result(user_account_id=user_account.id)
-    models.db.session.add(result)
-    models.db.session.commit()
-    models.db.session.refresh(result)
+    create_new_result = True
 
-    # Create track records
-    analytics_data_keys = [
-      'danceability',
-      'energy',
-      'key',
-      'loudness',
-      'mode',
-      'speechiness',
-      'acousticness',
-      'instrumentalness',
-      'liveness',
-      'valence',
-      'tempo',
-      'duration_ms',
-      'time_signature',
-    ]
-    track_upsert_statement = (
-      postgresql.insert(models.Track)
-      .values([
-        {
-          "id": x['id'],
-          "analytics_data": json.dumps({ k: v for (k, v) in x.items() if k in analytics_data_keys })
-        }
-        for x in top_track_audio_features
-      ])
-      .on_conflict_do_nothing()
-    )
-    track_upsert_result = models.db.engine.execute(track_upsert_statement)
-    models.db.session.commit()
+    last_result = models.Result.query.order_by(models.Result.created_at.desc()).first()
+    if last_result:
+      last_result_track_ids_ordered = [
+        x.track_id for x in
+        models.Result_Track.query
+        .filter_by(result_id=last_result.id)
+        .order_by(models.Result_Track.track_order.asc())
+      ]
+      if last_result_track_ids_ordered and last_result_track_ids_ordered == top_track_ids_with_analytics:
+          create_new_result = False
 
-    # Create result_track join table records
-    result_track_records = [
-      models.Result_Track(result_id=result.id, track_id=x)
-      for x in top_track_ids_with_analytics
-    ]
-    models.db.session.bulk_save_objects(result_track_records)
-    models.db.session.commit()
+    if create_new_result:
+      # Create result record
+      result = models.Result(user_account_id=user_account.id)
+      models.db.session.add(result)
+      models.db.session.commit()
+      models.db.session.refresh(result)
+
+      # Create track records
+      analytics_data_keys = [
+        'danceability',
+        'energy',
+        'key',
+        'loudness',
+        'mode',
+        'speechiness',
+        'acousticness',
+        'instrumentalness',
+        'liveness',
+        'valence',
+        'tempo',
+        'duration_ms',
+        'time_signature',
+      ]
+      track_upsert_statement = (
+        postgresql.insert(models.Track)
+        .values([
+          {
+            "id": x['id'],
+            "analytics_data": json.dumps({ k: v for (k, v) in x.items() if k in analytics_data_keys })
+          }
+          for x in top_track_audio_features
+        ])
+        .on_conflict_do_nothing()
+      )
+      track_upsert_result = models.db.engine.execute(track_upsert_statement)
+      models.db.session.commit()
+
+      # Create result_track join table records
+      result_track_records = [
+        models.Result_Track(result_id=result.id, track_id=track_id, track_order=track_order)
+        for track_order, track_id in enumerate(top_track_ids_with_analytics, start=1)
+      ]
+      models.db.session.bulk_save_objects(result_track_records)
+      models.db.session.commit()
 
     filename = 'generated_compasses/musical_compass-{}.png'.format(profile['id'])
     plt.savefig('musical_compass/{}'.format(filename))

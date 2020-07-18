@@ -30,3 +30,4 @@ class Result_Track(BaseMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
   result_id = db.Column(db.Integer, db.ForeignKey("result.id"), nullable=False)
   track_id = db.Column(db.String, db.ForeignKey("track.id"), nullable=False)
+  track_order = db.Column(db.Integer, nullable=False)
