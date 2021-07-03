@@ -32,24 +32,28 @@ spotify_client = pyoauth2.Client(
   authorize_url='https://accounts.spotify.com/authorize',
   token_url='https://accounts.spotify.com/api/token'
 )
+auth_url = spotify_client.auth_code.authorize_url(redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'], scope=scope)
 
 @app.route('/')
 def index():
+  # TODO: replace with view
+  content = '<div><a href="{}">Get Musical Compass Results</a></div>'.format(auth_url)
+  if session.get('authorized_client'):
+    profile = session['authorized_client'].get('me/').parsed
+    content = '<h2>Hi, {}</h2>'.format(profile['display_name']) + content
+  return content
+
+
+@app.route('/callback')
+def callback():
   if request.args.get("code"):
     session['authorized_client'] = spotify_client.auth_code.get_token(
       request.args.get("code"),
       redirect_uri=os.environ['SPOTIFY_REDIRECT_URI']
     )
     return redirect('/results')
-
-  if not session.get('authorized_client'):
-    auth_url = spotify_client.auth_code.authorize_url(redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'], scope=scope)
-    return f'<h2><a href="{auth_url}">Get Musical Compass Results</a></h2>'
-
-  profile = session['authorized_client'].get('me/').parsed
-
-  return '<h2>Hi, {} ' \
-    '<div><a href="/results">Get Musical Compass Results</a></div>'.format(profile['display_name'])
+  else:
+    return redirect('/')
 
 
 @app.route('/sign_out')
