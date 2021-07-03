@@ -52,11 +52,6 @@ def index():
     '<div><a href="/results">Get Musical Compass Results</a></div>'.format(profile['display_name'])
 
 
-@app.route('/.well-known/acme-challenge/kuGl8u6dAhjmmsY8ltItD4w1LsFtBPlIyQB-K5fb7XA')
-def well_known():
-  return 'kuGl8u6dAhjmmsY8ltItD4w1LsFtBPlIyQB-K5fb7XA.chY9M7gBNKq7G06W1sGE2RB7XK_reLfEs2vpTdYktQU'
-
-
 @app.route('/sign_out')
 def sign_out():
   session.clear()
