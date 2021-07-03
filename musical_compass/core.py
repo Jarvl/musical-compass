@@ -1,7 +1,9 @@
 import os
 import json
+import base64
+import io
 import matplotlib.pyplot as plt
-from flask import Flask, session, request, redirect, send_file
+from flask import Flask, session, request, redirect, send_file, render_template
 from flask_migrate import Migrate
 from flask_session import Session
 from flask_talisman import Talisman
@@ -34,14 +36,16 @@ spotify_client = pyoauth2.Client(
 )
 auth_url = spotify_client.auth_code.authorize_url(redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'], scope=scope)
 
+
+@app.context_processor
+def inject_auth_url():
+  auth_url = spotify_client.auth_code.authorize_url(redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'], scope=scope)
+  return {'auth_url': auth_url}
+
+
 @app.route('/')
 def index():
-  # TODO: replace with view
-  content = '<div><a href="{}">Get Musical Compass Results</a></div>'.format(auth_url)
-  if session.get('authorized_client'):
-    profile = session['authorized_client'].get('me/').parsed
-    content = '<h2>Hi, {}</h2>'.format(profile['display_name']) + content
-  return content
+  return render_template('index.html')
 
 
 @app.route('/callback')
@@ -51,12 +55,13 @@ def callback():
       request.args.get("code"),
       redirect_uri=os.environ['SPOTIFY_REDIRECT_URI']
     )
+    session['profile'] = session['authorized_client'].get('me/').parsed
     return redirect('/results')
   else:
     return redirect('/')
 
 
-@app.route('/sign_out')
+@app.route('/logout')
 def sign_out():
   session.clear()
   return redirect('/')
@@ -185,8 +190,12 @@ def results():
       ]
       models.db.session.bulk_save_objects(result_track_records)
       models.db.session.commit()
+    
+    plot_image = io.BytesIO()
+    plt.savefig(plot_image, format='png')
+    plt.close()
+    # converts file stream to a base64 string
+    plot_image_base64 = base64.b64encode(plot_image.getvalue()).decode()
+    plot_image_uri = 'data:image/png;base64,{}'.format(plot_image_base64)
 
-    filename = 'generated_compasses/musical_compass-{}.png'.format(profile['id'])
-    plt.savefig('musical_compass/{}'.format(filename))
-
-    return send_file(filename, mimetype='image/png')
+    return render_template("results.html", plot_image_uri=plot_image_uri)

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div style="z-index:-100;" class="d-flex flex-wrap position-fixed top-0 bottom-0 start-0 end-0">
+    <div style="background-color:#f9baba;" class="w-50 h-50"></div>
+    <div style="background-color:#92d9f8;" class="w-50 h-50"></div>
+    <div style="background-color:#c8e4bc;" class="w-50 h-50"></div>
+    <div style="background-color:#f5f5a7;" class="w-50 h-50"></div>
+  </div>
+  <div style="z-index: 10;" class="d-flex align-items-center justify-content-center position-fixed top-0 bottom-0 start-0 end-0">
+    <div class="text-center">
+      <h1 class="display-5 fw-bold">Musical Compass</h1>
+      <p class="lead mt-3 mb-5">
+        It's like the political compass, but for music - based on your Spotify listening habits.
+      </p>
+      {% if session.get('profile') %}
+        <a href="/results" class="btn btn-green rounded-pill py-3 px-4 fw-bold">
+          See Results
+        </a>
+      {% else %}
+        <a href="{{ auth_url }}" class="btn btn-green rounded-pill py-3 px-4 fw-bold">
+          <i class="fab fa-spotify fa-lg"></i>&nbsp;Log in with spotify
+        </a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
