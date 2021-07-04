@@ -28,18 +28,18 @@ Talisman(
 api_url = 'https://api.spotify.com/v1/'
 scope = 'user-top-read'
 spotify_client = pyoauth2.Client(
-  os.environ['SPOTIFY_CLIENT_ID'],
-  os.environ['SPOTIFY_CLIENT_SECRET'],
+  app.config['SPOTIFY_CLIENT_ID'],
+  app.config['SPOTIFY_CLIENT_SECRET'],
   site=api_url,
   authorize_url='https://accounts.spotify.com/authorize',
   token_url='https://accounts.spotify.com/api/token'
 )
-auth_url = spotify_client.auth_code.authorize_url(redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'], scope=scope)
+auth_url = spotify_client.auth_code.authorize_url(redirect_uri=app.config['SPOTIFY_REDIRECT_URI'], scope=scope)
 
 
 @app.context_processor
 def inject_auth_url():
-  auth_url = spotify_client.auth_code.authorize_url(redirect_uri=os.environ['SPOTIFY_REDIRECT_URI'], scope=scope)
+  auth_url = spotify_client.auth_code.authorize_url(redirect_uri=app.config['SPOTIFY_REDIRECT_URI'], scope=scope)
   return {'auth_url': auth_url}
 
 
@@ -53,7 +53,7 @@ def callback():
   if request.args.get("code"):
     session['authorized_client'] = spotify_client.auth_code.get_token(
       request.args.get("code"),
-      redirect_uri=os.environ['SPOTIFY_REDIRECT_URI']
+      redirect_uri=app.config['SPOTIFY_REDIRECT_URI']
     )
     session['profile'] = session['authorized_client'].get('me/').parsed
     return redirect('/results')
