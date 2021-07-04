@@ -6,16 +6,19 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-matplotlib = "*"
-flask = "*"
-gunicorn = "*"
-flask-session = "*"
-python-dotenv = "*"
-py-oauth2 = "*"
-flask-talisman = "*"
-flask-sqlalchemy = "*"
-flask-migrate = "*"
-psycopg2-binary = "*"
+matplotlib = "~=3.2.2"
+flask = "~=1.1.2"
+gunicorn = "~=20.0.4"
+flask-session = "~=0.3.2"
+python-dotenv = "~=0.14.0"
+py-oauth2 = "~=0.0.10"
+flask-talisman = "~=0.7.0"
+flask-sqlalchemy = "~=2.4.4"
+flask-migrate = "~=2.5.3"
+psycopg2-binary = "~=2.8.5"
+redis = "~=3.5.3"
+importlib-metadata = "==1.7.0" # Fixes issues with pipenv version constraints for this package 
+
 
 [requires]
-python_version = "3.7.8"
+python_full_version = "3.7.8"
