@@ -5,3 +5,7 @@
   text-transform: uppercase;
   letter-spacing: 2px;
 }
+
+.link-green, .link-green:visited {
+  color: #1DB954;
+}

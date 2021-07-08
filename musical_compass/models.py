@@ -19,7 +19,7 @@ class UserAccount(BaseMixin, db.Model):
 
 class Result(BaseMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  user_account_id = db.Column(db.String, db.ForeignKey("user_account.id"), nullable=False)
+  user_account_id = db.Column(db.String, db.ForeignKey("user_account.id", ondelete="CASCADE"), nullable=False)
   tracks = db.relationship("Track", secondary="result__track", backref="results", lazy="joined")
 
 class Track(BaseMixin, db.Model):
@@ -28,6 +28,6 @@ class Track(BaseMixin, db.Model):
 
 class Result_Track(BaseMixin, db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  result_id = db.Column(db.Integer, db.ForeignKey("result.id"), nullable=False)
+  result_id = db.Column(db.Integer, db.ForeignKey("result.id", ondelete="CASCADE"), nullable=False)
   track_id = db.Column(db.String, db.ForeignKey("track.id"), nullable=False)
   track_order = db.Column(db.Integer, nullable=False)
