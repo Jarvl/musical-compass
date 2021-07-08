@@ -3,10 +3,11 @@ import json
 import base64
 import io
 import matplotlib.pyplot as plt
-from flask import Flask, session, request, redirect, send_file, render_template
+from flask import Flask, session, request, redirect, send_file, render_template, url_for, flash
 from flask_migrate import Migrate
 from flask_session import Session
 from flask_talisman import Talisman
+from flask_wtf.csrf import CSRFProtect
 import sqlalchemy
 from sqlalchemy.dialects import postgresql
 import pyoauth2
@@ -24,6 +25,7 @@ Talisman(
   force_https_permanent=True,
   content_security_policy=None,
 )
+csrf = CSRFProtect(app)
 
 api_url = 'https://api.spotify.com/v1/'
 scope = 'user-top-read'
@@ -43,12 +45,12 @@ def inject_auth_url():
   return {'auth_url': auth_url}
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
   return render_template('index.html')
 
 
-@app.route('/callback')
+@app.route('/callback', methods=['GET'])
 def callback():
   if request.args.get("code"):
     session['authorized_client'] = spotify_client.auth_code.get_token(
@@ -56,21 +58,21 @@ def callback():
       redirect_uri=app.config['SPOTIFY_REDIRECT_URI']
     )
     session['profile'] = session['authorized_client'].get('me/').parsed
-    return redirect('/results')
+    return redirect(url_for('results'))
   else:
-    return redirect('/')
+    return redirect(url_for('index'))
 
 
-@app.route('/logout')
-def sign_out():
+@app.route('/logout', methods=['GET'])
+def logout():
   session.clear()
-  return redirect('/')
+  return redirect(url_for('index'))
 
 
-@app.route('/results')
+@app.route('/results', methods=['GET'])
 def results():
-  if not session.get('authorized_client'):
-    return redirect('/')
+  if not session.get('profile'):
+    return redirect(url_for('index'))
   else:
     try:
       top_track_ids = helpers.get_top_track_ids()
@@ -118,9 +120,7 @@ def results():
 
     plt.plot(x_axis_value, y_axis_value, 'ro')
 
-    # plt.show()
-
-    profile = session['authorized_client'].get('me/').parsed
+    profile = session['profile']
 
     # Upsert user account record
     user_account = models.UserAccount.query.filter_by(id=profile['id']).first()
@@ -199,3 +199,12 @@ def results():
     plot_image_uri = 'data:image/png;base64,{}'.format(plot_image_base64)
 
     return render_template("results.html", plot_image_uri=plot_image_uri)
+
+@app.route('/purge_account_data', methods=['POST'])
+def purge_account_data():
+  if session.get('profile'):
+    models.db.session.query(models.UserAccount).filter_by(id=session['profile']['id']).delete()
+    models.db.session.commit()
+    session.clear()
+    flash('Account data successfully purged.', 'success')
+  return redirect(url_for('index'))
