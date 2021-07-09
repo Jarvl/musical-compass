@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <img style="width:100%" src="{{ plot_image_uri }}" alt="Musical compass results" />
+<div class="container py-3">
+  <h1>Your Results</h1>
+  <div class="text-center mt-4">
+    <img src="{{ plot_image_uri }}" alt="Musical Compass results" class="w-100" />
+  </div>
+</div>
 {% endblock %}
