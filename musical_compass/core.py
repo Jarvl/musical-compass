@@ -14,7 +14,7 @@ import pyoauth2
 
 from . import helpers, models
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config.from_object("musical_compass.config")
 Session(app)
 migrate = Migrate(app, models.db)
