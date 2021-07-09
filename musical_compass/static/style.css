@@ -1,11 +1,15 @@
+footer a, footer a:visited {
+  color: #1DB954;
+}
+
+footer p {
+  margin: 0;
+}
+
 .btn-green {
   color: #fff;
   background-color: #1DB954;
   border-color: #1DB954;
   text-transform: uppercase;
   letter-spacing: 2px;
-}
-
-.link-green, .link-green:visited {
-  color: #1DB954;
 }
