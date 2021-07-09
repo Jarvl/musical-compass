@@ -108,17 +108,18 @@ def results():
       round(y_axis_value, 2)
     )
 
-    ax.set_title(plot_title)
-    ax.set_xlabel(x_axis_title)
-    ax.set_ylabel(y_axis_title)
+    ax.set_title(plot_title, fontsize=28)
+    ax.set_xlabel(x_axis_title, fontsize=20)
+    ax.set_ylabel(y_axis_title, fontsize=20)
+    ax.tick_params(labelsize=16)
 
     ax.fill_between([-1, 0],0,-1,alpha=1, color='#c8e4bc')  # LibLeft
     ax.fill_between([0, 1], -1, 0, alpha=1, color='#f5f5a7')  # LibRight
     ax.fill_between([-1, 0], 0, 1, alpha=1, color='#f9baba')  # AuthLeft
     ax.fill_between([0, 1], 0, 1, alpha=1, color='#92d9f8')  # AuthRight
-    ax.fill_between([-.3, .3], -.3, .3, alpha=1, color='#808080')  # Grill
+    #  ax.fill_between([-.3, .3], -.3, .3, alpha=1, color='#808080')  # Grill
 
-    plt.plot(x_axis_value, y_axis_value, 'ro')
+    plt.plot(x_axis_value, y_axis_value, 'ro', markersize=12)
 
     profile = session['profile']
 
