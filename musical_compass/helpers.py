@@ -1,5 +1,5 @@
-from functools import reduce
-from flask import session
+from functools import reduce, wraps
+from flask import session, flash, redirect, url_for
 
 class NoListeningDataException(Exception):
   def __init__(self, message='You have no listening data to analyze yet!'):
@@ -43,3 +43,12 @@ def get_compass_values(track_audio_features, x_axis_key, y_axis_key):
   mean_y_axis = convert_to_plot_range(total_y_axis / weight_sum)
 
   return (mean_x_axis, mean_y_axis)
+
+def logged_in(f):
+  @wraps(f)
+  def decorated_function(*args, **kwargs):
+    if not session.get('profile'):
+      flash("You must be logged in to view this page", "danger")
+      return redirect(url_for('index'))
+    return f(*args, **kwargs)
+  return decorated_function
